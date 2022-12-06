@@ -7,6 +7,7 @@
 
 I made it for myself to control my work on PC (excessive use of chats etc)
 
+![main tab](screenshot.png)
 
 ##  What works
 

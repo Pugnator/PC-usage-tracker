@@ -109,7 +109,3 @@ bool TimeTracker::eventFilter(QObject *obj, QEvent *event)
     return QMainWindow::eventFilter(obj, event);
   }
 }
-
-void TimeTracker::on_turnOffScheduleCheck_clicked(bool clicked)
-{
-}

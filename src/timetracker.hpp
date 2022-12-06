@@ -80,8 +80,7 @@ private slots:
 
   void onPieChartSliceHovered(bool);
   void on_showWorkTimeRangeOnly_clicked(bool);
-  void on_stopTrackingButton_clicked(bool);
-  void on_turnOffScheduleCheck_clicked(bool);
+  void on_stopTrackingButton_clicked(bool);  
   void on_calendarStats_selectionChanged();
 
   void on_resetStatsButton_clicked();
