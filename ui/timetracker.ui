@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TimeTracker</class>
+ <widget class="QMainWindow" name="TimeTracker">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1200</width>
+    <height>800</height>
+   </rect>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>1200</width>
+    <height>800</height>
+   </size>
+  </property>
+  <property name="baseSize">
+   <size>
+    <width>1200</width>
+    <height>800</height>
+   </size>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>13</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>TimeTracker</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QWidget" name="verticalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>9</x>
+      <y>9</y>
+      <width>1181</width>
+      <height>711</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="tab">
+        <attribute name="title">
+         <string>Activity</string>
+        </attribute>
+        <widget class="QTableView" name="appTableView">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>671</width>
+           <height>521</height>
+          </rect>
+         </property>
+         <property name="locale">
+          <locale language="English" country="UnitedStates"/>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::WinPanel</enum>
+         </property>
+         <property name="sizeAdjustPolicy">
+          <enum>QAbstractScrollArea::AdjustToContents</enum>
+         </property>
+         <property name="editTriggers">
+          <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
+         <property name="sortingEnabled">
+          <bool>true</bool>
+         </property>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+        </widget>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="geometry">
+          <rect>
+           <x>710</x>
+           <y>40</y>
+           <width>431</width>
+           <height>631</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Top 10 today</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignHCenter|Qt::AlignTop</set>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="verticalLayoutWidget_2">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>40</y>
+            <width>411</width>
+            <height>541</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="statsLayout">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="sizeConstraint">
+            <enum>QLayout::SetMinimumSize</enum>
+           </property>
+          </layout>
+         </widget>
+         <widget class="QCheckBox" name="showWorkTimeRangeOnly">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>590</y>
+            <width>257</width>
+            <height>34</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>work shift only</string>
+          </property>
+         </widget>
+        </widget>
+        <widget class="QWidget" name="layoutWidget">
+         <property name="geometry">
+          <rect>
+           <x>820</x>
+           <y>0</y>
+           <width>196</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QPushButton" name="stopTrackingButton">
+            <property name="text">
+             <string>Stop tracking</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QGroupBox" name="logonTimerBox">
+         <property name="geometry">
+          <rect>
+           <x>30</x>
+           <y>550</y>
+           <width>301</width>
+           <height>101</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Session time</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <widget class="QWidget" name="verticalLayoutWidget_3">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>30</y>
+            <width>281</width>
+            <height>61</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="logonTimerLayout"/>
+         </widget>
+        </widget>
+        <widget class="QGroupBox" name="activityTimerBox">
+         <property name="geometry">
+          <rect>
+           <x>350</x>
+           <y>550</y>
+           <width>341</width>
+           <height>101</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>User activity</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <widget class="QWidget" name="verticalLayoutWidget_4">
+          <property name="geometry">
+           <rect>
+            <x>9</x>
+            <y>30</y>
+            <width>321</width>
+            <height>61</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="activityTimerLayout"/>
+         </widget>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="tab_2">
+        <attribute name="title">
+         <string>Stats</string>
+        </attribute>
+        <widget class="QTabWidget" name="tabWidget_2">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>50</y>
+           <width>1131</width>
+           <height>601</height>
+          </rect>
+         </property>
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="tab_3">
+          <attribute name="title">
+           <string>Total</string>
+          </attribute>
+          <widget class="QCalendarWidget" name="calendarStats">
+           <property name="geometry">
+            <rect>
+             <x>551</x>
+             <y>250</y>
+             <width>551</width>
+             <height>278</height>
+            </rect>
+           </property>
+           <property name="gridVisible">
+            <bool>false</bool>
+           </property>
+          </widget>
+          <widget class="QWidget" name="verticalLayoutWidget_5">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>10</y>
+             <width>411</width>
+             <height>541</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="statsLayoutCalend">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="sizeConstraint">
+             <enum>QLayout::SetMinimumSize</enum>
+            </property>
+           </layout>
+          </widget>
+          <widget class="QPushButton" name="resetStatsButton">
+           <property name="geometry">
+            <rect>
+             <x>1000</x>
+             <y>20</y>
+             <width>93</width>
+             <height>39</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Reset all</string>
+           </property>
+          </widget>
+          <widget class="QGroupBox" name="groupBox_5">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="geometry">
+            <rect>
+             <x>470</x>
+             <y>20</y>
+             <width>401</width>
+             <height>211</height>
+            </rect>
+           </property>
+           <property name="title">
+            <string>Monthly</string>
+           </property>
+           <widget class="QWidget" name="verticalLayoutWidget_6">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>30</y>
+              <width>381</width>
+              <height>171</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="appWeekChartLayout"/>
+           </widget>
+          </widget>
+         </widget>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="tab_5">
+        <attribute name="title">
+         <string>Settings</string>
+        </attribute>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>30</y>
+           <width>491</width>
+           <height>141</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Work shift</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing</set>
+         </property>
+         <widget class="QWidget" name="layoutWidget3">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>40</y>
+            <width>211</width>
+            <height>37</height>
+           </rect>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <widget class="QTimeEdit" name="timeShiftStart">
+             <property name="time">
+              <time>
+               <hour>10</hour>
+               <minute>0</minute>
+               <second>0</second>
+              </time>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTimeEdit" name="timeShiftEnd">
+             <property name="time">
+              <time>
+               <hour>19</hour>
+               <minute>0</minute>
+               <second>0</second>
+              </time>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1200</width>
+     <height>36</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
