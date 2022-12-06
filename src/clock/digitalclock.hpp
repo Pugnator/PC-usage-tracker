@@ -12,11 +12,10 @@ public:
   DigitalClock(QWidget *parent = nullptr);
 
 private slots:
-    void showTime();
-    void start();
-    void stop();
-    void reset();
-
+  void showTime();
+  void start();
+  void stop();
+  void reset();
 };
 
 class DigitalTimer : public QLCDNumber
@@ -31,10 +30,10 @@ public:
   void set(std::chrono::seconds time);
 
 private slots:
-    void showTime();
+  void showTime();
 
 private:
-    std::chrono::seconds timeElapsed;
-    QTimer *timer;
-    std::atomic_bool isRunning;
+  std::chrono::seconds timeElapsed;
+  QTimer *timer;
+  std::atomic_bool isRunning;
 };

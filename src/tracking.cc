@@ -11,13 +11,13 @@ void TimeTracker::updateApplicationAtWorkUsage(QString name, std::chrono::second
   checkAppWork.prepare("SELECT name FROM ApplicationWorktimeUsage WHERE day=DATE('now', 'localtime') AND name=:appName");
   checkAppWork.bindValue(":appName", name);
   checkAppWork.exec();
-  if(!checkAppWork.next())
-    {
-      QSqlQuery insertQueryWork;
-      insertQueryWork.prepare("INSERT OR IGNORE INTO ApplicationWorktimeUsage(name, usage,day,last) VALUES(:appName, 0, DATE('now', 'localtime'),DATETIME('now', 'localtime'))");
-      insertQueryWork.bindValue(":appName", name);
-      insertQueryWork.exec();
-    }
+  if (!checkAppWork.next())
+  {
+    QSqlQuery insertQueryWork;
+    insertQueryWork.prepare("INSERT OR IGNORE INTO ApplicationWorktimeUsage(name, usage,day,last) VALUES(:appName, 0, DATE('now', 'localtime'),DATETIME('now', 'localtime'))");
+    insertQueryWork.bindValue(":appName", name);
+    insertQueryWork.exec();
+  }
   QSqlQuery updateQueryWork;
 
   updateQueryWork.prepare("UPDATE ApplicationWorktimeUsage SET usage = usage + :timeIncrement, last=DATETIME('now', 'localtime') WHERE day = DATE('now', 'localtime') AND name=:appName");
@@ -28,47 +28,47 @@ void TimeTracker::updateApplicationAtWorkUsage(QString name, std::chrono::second
 
 void TimeTracker::updateApplicationUsage(QString name, std::chrono::seconds time)
 {
-  if(QDate::currentDate() > currentSession)
-    {
-      qDebug("New day!");
-      //it's a new day
-      //!FIXME: this is a shitty temp solution
-      //!BUG: https://github.com/Pugnator/ApplicationTimeTracker/issues/1      
+  if (QDate::currentDate() > currentSession)
+  {
+    qDebug("New day!");
+    // it's a new day
+    //! FIXME: this is a shitty temp solution
+    //! BUG: https://github.com/Pugnator/ApplicationTimeTracker/issues/1
 
-      updateDailyStats();
+    updateDailyStats();
 
-      currentSession = QDate::currentDate();
-      loggedOnTime = 0s;
-      loggedOffTime = 0s;
-      userIdlingTime = 0s;
-      activityTimer->reset();
-      logonTimer->reset();
-      appModelSetup(showWorkShiftStatsOnly ? "ApplicationWorktimeUsage" : "ApplicationUsage");
-    }
-  if(isSystemLocked)
-    {
-      loggedOffTime++;      
-      return;
-    }  
+    currentSession = QDate::currentDate();
+    loggedOnTime = 0s;
+    loggedOffTime = 0s;
+    userIdlingTime = 0s;
+    activityTimer->reset();
+    logonTimer->reset();
+    appModelSetup(showWorkShiftStatsOnly ? "ApplicationWorktimeUsage" : "ApplicationUsage");
+  }
+  if (isSystemLocked)
+  {
+    loggedOffTime++;
+    return;
+  }
 
   loggedOnTime++;
-  if(!trackingEnabled)
-    {
-      return;
-    }
+  if (!trackingEnabled)
+  {
+    return;
+  }
 
   bool isWorkShift = false;
   QDateTime curTime = QDateTime::currentDateTime();
-  if(curTime.time() >= shiftStart && curTime.time() <= shiftEnd)
-    {
-      isWorkShift = true;
-    }
+  if (curTime.time() >= shiftStart && curTime.time() <= shiftEnd)
+  {
+    isWorkShift = true;
+  }
 
-  if(name.trimmed().isEmpty())
-    {
-      //some system windowless apps or no actual window is in focus
-      return;
-    }
+  if (name.trimmed().isEmpty())
+  {
+    // some system windowless apps or no actual window is in focus
+    return;
+  }
   appUsageModel->select();
 
   QSqlQuery checkApp;
@@ -77,26 +77,26 @@ void TimeTracker::updateApplicationUsage(QString name, std::chrono::seconds time
   checkApp.exec();
 
   QSqlQuery insertQuery;
-  if(!checkApp.next())
+  if (!checkApp.next())
+  {
+    insertQuery.prepare("INSERT OR IGNORE INTO ApplicationUsage(name, usage,day,last) VALUES(:appName, 0, DATE('now', 'localtime'),DATETIME('now', 'localtime'))");
+    insertQuery.bindValue(":appName", name);
+    if (!insertQuery.exec())
     {
-      insertQuery.prepare("INSERT OR IGNORE INTO ApplicationUsage(name, usage,day,last) VALUES(:appName, 0, DATE('now', 'localtime'),DATETIME('now', 'localtime'))");
-      insertQuery.bindValue(":appName", name);
-      if(!insertQuery.exec())
-        {
-          qDebug("Failure");
-        }
+      qDebug("Failure");
     }
+  }
   else
+  {
+    insertQuery.prepare("UPDATE ApplicationUsage SET usage = usage + :timeIncrement, last=DATETIME('now', 'localtime') WHERE day = DATE('now', 'localtime') AND name=:appName");
+    insertQuery.bindValue(":appName", name);
+    insertQuery.bindValue(":timeIncrement", time.count());
+    insertQuery.exec();
+    if (isWorkShift)
     {
-      insertQuery.prepare("UPDATE ApplicationUsage SET usage = usage + :timeIncrement, last=DATETIME('now', 'localtime') WHERE day = DATE('now', 'localtime') AND name=:appName");
-      insertQuery.bindValue(":appName", name);
-      insertQuery.bindValue(":timeIncrement", time.count());
-      insertQuery.exec();
-      if(isWorkShift)
-        {
-          updateApplicationAtWorkUsage(name, time);
-        }
+      updateApplicationAtWorkUsage(name, time);
     }
+  }
 
   appUsageModel->submitAll();
 
@@ -104,19 +104,19 @@ void TimeTracker::updateApplicationUsage(QString name, std::chrono::seconds time
   info.cbSize = sizeof(info);
   GetLastInputInfo(&info);
   DWORD idleSeconds = (GetTickCount() - info.dwTime) / 1000;
-  if(idleSeconds > USER_IDLING_DELAY)
-    {
-      userIdlingTime++;
-      activityTimer->pause();
-    }
+  if (idleSeconds > USER_IDLING_DELAY)
+  {
+    userIdlingTime++;
+    activityTimer->pause();
+  }
   else
-    {
-      activityTimer->start();
-    }
+  {
+    activityTimer->start();
+  }
 }
 
 void TimeTracker::updateDailyStats()
-{  
+{
   appUsageModel->select();
   QSqlQuery insertQuery, updateQuery;
   insertQuery.prepare("INSERT OR IGNORE INTO DailyUsage(logon, logoff, idle, day) VALUES(:logon, :logoff, :idle, date(:session))");

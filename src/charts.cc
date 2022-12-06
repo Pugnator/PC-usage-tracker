@@ -14,44 +14,43 @@
 
 void TimeTracker::createDailyChart()
 {
-  QLayoutItem* item;
-  while((item = ui->statsLayout->layout()->takeAt(0))!= NULL)
-    {
-      delete item->widget();
-      delete item;
-    }
+  QLayoutItem *item;
+  while ((item = ui->statsLayout->layout()->takeAt(0)) != NULL)
+  {
+    delete item->widget();
+    delete item;
+  }
   appDailyChart = new QChart();
   QSqlQuery usageQuery;
   QString queryStr = QString(
-        "SELECT name, usage FROM %1 WHERE last >= DATE('now', 'localtime') AND last < DATE('now', 'localtime', '+1 day') ORDER BY usage DESC LIMIT 10"
-        ).arg(showWorkShiftStatsOnly ? "ApplicationWorktimeUsage" : "ApplicationUsage");
+                         "SELECT name, usage FROM %1 WHERE last >= DATE('now', 'localtime') AND last < DATE('now', 'localtime', '+1 day') ORDER BY usage DESC LIMIT 10")
+                         .arg(showWorkShiftStatsOnly ? "ApplicationWorktimeUsage" : "ApplicationUsage");
   usageQuery.prepare(queryStr);
-  if(!usageQuery.exec())
-    {
-      return;
-    }
+  if (!usageQuery.exec())
+  {
+    return;
+  }
 
   QPieSeries *series = new QPieSeries();
-  while(usageQuery.next())
-    {
-      series->append(usageQuery.value(0).toString(), usageQuery.value(1).toInt());
-    }
+  while (usageQuery.next())
+  {
+    series->append(usageQuery.value(0).toString(), usageQuery.value(1).toInt());
+  }
 
   series->setHoleSize(0.3);
   series->setLabelsVisible(false);
-  if(!series->slices().empty())
+  if (!series->slices().empty())
+  {
+    for (const auto &s : series->slices())
     {
-      for(const auto &s: series->slices())
-        {
-          std::hash<std::string> hasher;
-          auto hashed = hasher(s->label().toStdString());
-          QColor color(hashed & 0xFF, (hashed >> 8) & 0xFF, (hashed >> 16) & 0xFF);
-          s->setPen(QPen(color, 2));
-          s->setBrush(color);
-          connect(s, SIGNAL(hovered(bool)), this, SLOT(onPieChartSliceHovered(bool)));
-        }
-
+      std::hash<std::string> hasher;
+      auto hashed = hasher(s->label().toStdString());
+      QColor color(hashed & 0xFF, (hashed >> 8) & 0xFF, (hashed >> 16) & 0xFF);
+      s->setPen(QPen(color, 2));
+      s->setBrush(color);
+      connect(s, SIGNAL(hovered(bool)), this, SLOT(onPieChartSliceHovered(bool)));
     }
+  }
   appDailyChart->addSeries(series);
   appDailyChart->setBackgroundRoundness(0);
   appDailyChart->legend()->setVisible(true);
@@ -70,50 +69,50 @@ void TimeTracker::createDailyChart()
 
 void TimeTracker::onPieChartSliceHovered(bool hovered)
 {
-  QObject* obj = sender();
-  QPieSlice* slice = qobject_cast<QPieSlice*>(obj);
+  QObject *obj = sender();
+  QPieSlice *slice = qobject_cast<QPieSlice *>(obj);
   slice->setExploded(hovered);
 }
 
 void TimeTracker::createCalendChart(QDate date)
 {
-  QLayoutItem* item;
-  while((item = ui->statsLayoutCalend->layout()->takeAt(0))!= NULL)
-    {
-      delete item->widget();
-      delete item;
-    }
+  QLayoutItem *item;
+  while ((item = ui->statsLayoutCalend->layout()->takeAt(0)) != NULL)
+  {
+    delete item->widget();
+    delete item;
+  }
   QChart *calendChart = new QChart();
   QSqlQuery usageQuery;
   QString queryStr = QString(
-        "SELECT name, usage FROM %1 WHERE last >= DATE('%2') AND last < DATE('%2', '+1 day') ORDER BY usage DESC LIMIT 10"
-        ).arg(showWorkShiftStatsOnly ? "ApplicationWorktimeUsage" : "ApplicationUsage", date.toString("yyyy-MM-dd"));
+                         "SELECT name, usage FROM %1 WHERE last >= DATE('%2') AND last < DATE('%2', '+1 day') ORDER BY usage DESC LIMIT 10")
+                         .arg(showWorkShiftStatsOnly ? "ApplicationWorktimeUsage" : "ApplicationUsage", date.toString("yyyy-MM-dd"));
   usageQuery.prepare(queryStr);
-  if(!usageQuery.exec())
-    {
-      return;
-    }
+  if (!usageQuery.exec())
+  {
+    return;
+  }
 
   QPieSeries *series = new QPieSeries();
-  while(usageQuery.next())
-    {
-      series->append(usageQuery.value(0).toString(), usageQuery.value(1).toInt());
-    }
+  while (usageQuery.next())
+  {
+    series->append(usageQuery.value(0).toString(), usageQuery.value(1).toInt());
+  }
 
   series->setHoleSize(0.3);
   series->setLabelsVisible(false);
-  if(!series->slices().empty())
+  if (!series->slices().empty())
+  {
+    for (const auto &s : series->slices())
     {
-      for(const auto &s: series->slices())
-        {
-          std::hash<std::string> hasher;
-          auto hashed = hasher(s->label().toStdString());
-          QColor color(hashed & 0xFF, (hashed >> 8) & 0xFF, (hashed >> 16) & 0xFF);
-          s->setPen(QPen(color, 2));
-          s->setBrush(color);
-          connect(s, SIGNAL(hovered(bool)), this, SLOT(onPieChartSliceHovered(bool)));
-        }
+      std::hash<std::string> hasher;
+      auto hashed = hasher(s->label().toStdString());
+      QColor color(hashed & 0xFF, (hashed >> 8) & 0xFF, (hashed >> 16) & 0xFF);
+      s->setPen(QPen(color, 2));
+      s->setBrush(color);
+      connect(s, SIGNAL(hovered(bool)), this, SLOT(onPieChartSliceHovered(bool)));
     }
+  }
 
   calendChart->addSeries(series);
   calendChart->setBackgroundRoundness(0);
@@ -136,27 +135,32 @@ void TimeTracker::createAppChart(QDate date)
 
   QSqlQuery usageQuery;
   QString queryStr = QString(
-        "SELECT name, usage FROM ApplicationUsage WHERE last >= DATE('%2', '-7 days') AND last < DATE('%2', '+1 day') ORDER BY usage DESC LIMIT 10"
-        ).arg(date.toString("yyyy-MM-dd"));
+                         "SELECT name, usage FROM ApplicationUsage WHERE last >= DATE('%2', '-7 days') AND last < DATE('%2', '+1 day') ORDER BY usage DESC LIMIT 10")
+                         .arg(date.toString("yyyy-MM-dd"));
   usageQuery.prepare(queryStr);
-  if(!usageQuery.exec())
-    {
-      return;
-    }
+  if (!usageQuery.exec())
+  {
+    return;
+  }
 
   QHorizontalPercentBarSeries *series = new QHorizontalPercentBarSeries();
-  while(usageQuery.next())
-    {
-      auto *set = new QBarSet(usageQuery.value(0).toString());
-      *set << usageQuery.value(1).toInt();
-      series->append(set);
-    }
+  while (usageQuery.next())
+  {
+    auto *set = new QBarSet(usageQuery.value(0).toString());
+    *set << usageQuery.value(1).toInt();
+    series->append(set);
+  }
   QChart *appChart = new QChart();
   appChart->setTitle("Weekly stats");
   appChart->setAnimationOptions(QChart::SeriesAnimations);
   appChart->addSeries(series);
   QStringList categories;
-  categories << "Jan" << "Feb" << "Mar" << "Apr" << "May" << "Jun";
+  categories << "Jan"
+             << "Feb"
+             << "Mar"
+             << "Apr"
+             << "May"
+             << "Jun";
   QBarCategoryAxis *axisY = new QBarCategoryAxis();
   axisY->append(categories);
   appChart->addAxis(axisY, Qt::AlignLeft);

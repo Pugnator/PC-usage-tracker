@@ -10,10 +10,11 @@
 #include "timer/timer.hpp"
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class TimeTracker; }
+namespace Ui
+{
+  class TimeTracker;
+}
 QT_END_NAMESPACE
-
-
 
 using namespace std::chrono_literals;
 
@@ -31,25 +32,20 @@ PRAGMA main.temp_store=MEMORY;";
 class AppUsageView : public QSqlTableModel
 {
 public:
-  AppUsageView(): QSqlTableModel()
-  {
-  };
-  ~AppUsageView()
-  {
-  };
+  AppUsageView() : QSqlTableModel(){};
+  ~AppUsageView(){};
 
 private:
   QString selectStatement() const Q_DECL_OVERRIDE;
   QVariant data(const QModelIndex &index, int role) const Q_DECL_OVERRIDE;
   QString beautifyDuration(std::chrono::seconds input_seconds) const;
-
 };
 
 class TrayIcon : public QSystemTrayIcon
 {
   Q_OBJECT
 
-public :
+public:
   TrayIcon(QObject *parent);
   ~TrayIcon();
 
@@ -107,7 +103,7 @@ private:
 
   void error(QString text);
 
-  Ui::TimeTracker *ui;  
+  Ui::TimeTracker *ui;
 
   std::unique_ptr<QObject> timeTracker;
   std::unique_ptr<Timer> trackerWorker;
@@ -133,4 +129,3 @@ private:
   QTime shiftEnd;
   QDate currentSession;
 };
-

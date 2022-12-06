@@ -8,7 +8,7 @@
 
 using namespace std::chrono_literals;
 
-Timer::Timer(QObject* thingy, QObject* parent, HWND win)
+Timer::Timer(QObject *thingy, QObject *parent, HWND win)
 {
   timeTracker = thingy;
   parentWin = win;
@@ -30,9 +30,9 @@ void Timer::timerEvent(QTimerEvent *event)
 {
   HWND foreground = GetForegroundWindow();
   if (!foreground || parentWin == foreground)
-    {
-      return;
-    }
+  {
+    return;
+  }
 
   int len = GetWindowTextLength(foreground) + 1;
   std::vector<wchar_t> buf(len);
@@ -41,13 +41,12 @@ void Timer::timerEvent(QTimerEvent *event)
   emit appUpdate(title, 1s);
 }
 
-
 void Timer::trackActivity()
 {
   timerId = startTimer(LOG_INTERVAL, Qt::PreciseTimer);
 }
 
 void Timer::stopTimer()
-{  
+{
   killTimer(timerId);
 }

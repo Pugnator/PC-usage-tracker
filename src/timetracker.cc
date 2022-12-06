@@ -5,42 +5,39 @@
 #include "clock/digitalclock.hpp"
 
 TimeTracker::TimeTracker(QWidget *parent)
-  : QMainWindow(parent)
-  , ui(new Ui::TimeTracker)
-  , isSystemLocked(false),
-    loggedOnTime(0s),
-    loggedOffTime(0s),
-    userIdlingTime(0s),
-    showWorkShiftStatsOnly(false),
-    trackingEnabled(true),
-    dontWarnOnHide(false),
-    currentSession(QDate::currentDate())
+    : QMainWindow(parent), ui(new Ui::TimeTracker), isSystemLocked(false),
+      loggedOnTime(0s),
+      loggedOffTime(0s),
+      userIdlingTime(0s),
+      showWorkShiftStatsOnly(false),
+      trackingEnabled(true),
+      dontWarnOnHide(false),
+      currentSession(QDate::currentDate())
 {
   ui->setupUi(this);
-  QSettings settings ("settings.ini", QSettings::IniFormat);
-  if(QSettings::NoError != settings.status())
-    {
-      return;
-    }
+  QSettings settings("settings.ini", QSettings::IniFormat);
+  if (QSettings::NoError != settings.status())
+  {
+    return;
+  }
   settings.beginGroup("MainWindow");
-  if(settings.contains("dontWarnOnHide"))
-    {
-      dontWarnOnHide = settings.value("dontWarnOnHide").toBool();
-    }
+  if (settings.contains("dontWarnOnHide"))
+  {
+    dontWarnOnHide = settings.value("dontWarnOnHide").toBool();
+  }
   settings.endGroup();
 
+  if (!WTSRegisterSessionNotification(reinterpret_cast<HWND>(winId()), NOTIFY_FOR_THIS_SESSION))
+  {
+    qDebug("Failed to register for notifications");
+  }
 
-  if(!WTSRegisterSessionNotification(reinterpret_cast<HWND>(winId()), NOTIFY_FOR_THIS_SESSION))
-    {
-      qDebug("Failed to register for notifications");
-    }
-
-  if(!prepareDb())
-    {
-      qDebug("failed to prepare DB");
-      QCoreApplication::exit(1);
-      return;
-    }
+  if (!prepareDb())
+  {
+    qDebug("failed to prepare DB");
+    QCoreApplication::exit(1);
+    return;
+  }
 
   createTrayIcon();
   ui->appTableView->show();
@@ -67,12 +64,12 @@ TimeTracker::TimeTracker(QWidget *parent)
 }
 
 TimeTracker::~TimeTracker()
-{  
-  QSettings settings ("settings.ini", QSettings::IniFormat);
-  if(QSettings::NoError != settings.status())
-    {
-      return;
-    }
+{
+  QSettings settings("settings.ini", QSettings::IniFormat);
+  if (QSettings::NoError != settings.status())
+  {
+    return;
+  }
   settings.beginGroup("MainWindow");
   settings.setValue("dontWarnOnHide", QVariant(dontWarnOnHide));
   settings.endGroup();
@@ -83,5 +80,3 @@ TimeTracker::~TimeTracker()
   db->close();
   delete ui;
 }
-
-

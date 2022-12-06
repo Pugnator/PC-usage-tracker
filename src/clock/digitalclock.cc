@@ -3,8 +3,8 @@
 #include <QColor>
 
 DigitalClock::DigitalClock(QWidget *parent)
-  : QLCDNumber(parent)
-{  
+    : QLCDNumber(parent)
+{
   QTimer *timer = new QTimer(this);
   connect(timer, &QTimer::timeout, this, &DigitalClock::showTime);
   timer->start(1000);
@@ -24,20 +24,16 @@ void DigitalClock::showTime()
 
 void DigitalClock::start()
 {
-
 }
 void DigitalClock::stop()
 {
-
 }
 void DigitalClock::reset()
 {
-
 }
 
-
 DigitalTimer::DigitalTimer(std::chrono::seconds seed, QWidget *parent)
-  : QLCDNumber(parent)
+    : QLCDNumber(parent)
 {
   timeElapsed = seed;
   isRunning = false;
@@ -51,10 +47,10 @@ DigitalTimer::DigitalTimer(std::chrono::seconds seed, QWidget *parent)
 
 void DigitalTimer::showTime()
 {
-  if(!isRunning)
-    {
-      return;
-    }
+  if (!isRunning)
+  {
+    return;
+  }
   timeElapsed++;
   QTime _seed(0, 0);
   QTime time = _seed.addSecs(timeElapsed.count());
@@ -66,10 +62,10 @@ void DigitalTimer::showTime()
 
 void DigitalTimer::start(std::chrono::seconds time)
 {
-  if(isRunning)
-    {
-      return;
-    }
+  if (isRunning)
+  {
+    return;
+  }
   isRunning = true;
   timeElapsed = time;
   auto pal = palette();
@@ -94,10 +90,9 @@ void DigitalTimer::pause()
 }
 void DigitalTimer::reset()
 {
-  timeElapsed = 0s;  
+  timeElapsed = 0s;
 }
 void DigitalTimer::set(std::chrono::seconds time)
 {
   timeElapsed = time;
 }
-

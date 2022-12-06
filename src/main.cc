@@ -13,8 +13,8 @@ int main(int argc, char *argv[])
 
   if (!QSystemTrayIcon::isSystemTrayAvailable())
   {
-      QMessageBox::critical(nullptr, QObject::tr("Трей"), QObject::tr("Не могу свернуться в трей."));
-      return 1;
+    QMessageBox::critical(nullptr, QObject::tr("Трей"), QObject::tr("Не могу свернуться в трей."));
+    return 1;
   }
 
   QCoreApplication::setOrganizationName("OpenSource");
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
   QFile file("stylesheet.сss");
   file.open(QFile::ReadOnly);
   QString styleSheet = QLatin1String(file.readAll());
-  a.setStyleSheet(styleSheet);  
+  a.setStyleSheet(styleSheet);
   TimeTracker w;
   return a.exec();
 }
