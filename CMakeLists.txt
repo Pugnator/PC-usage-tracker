@@ -36,7 +36,9 @@ set(PROJECT_SOURCES
         src/log.cc
         src/charts.cc
         src/events.cc
+        src/notifications.cc
         src/tracking.cc
+        src/settings.cc
         src/timetracker.cc
         src/timetracker.hpp
         src/clock/digitalclock.hpp src/clock/digitalclock.cc

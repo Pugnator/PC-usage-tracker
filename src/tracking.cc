@@ -27,8 +27,8 @@ void TimeTracker::updateApplicationAtWorkUsage(QString name, std::chrono::second
 }
 
 void TimeTracker::updateApplicationUsage(QString name, std::chrono::seconds time)
-{
-  if (QDate::currentDate() > currentSession)
+{  
+  if (QDate::currentDate() > currentSession_)
   {
     qDebug("New day!");
     // it's a new day
@@ -37,29 +37,69 @@ void TimeTracker::updateApplicationUsage(QString name, std::chrono::seconds time
 
     updateDailyStats();
 
-    currentSession = QDate::currentDate();
-    loggedOnTime = 0s;
-    loggedOffTime = 0s;
-    userIdlingTime = 0s;
+    currentSession_ = QDate::currentDate();
+    loggedOnTime_ = 0s;
+    loggedOffTime_ = 0s;
+    userIdlingTime_ = 0s;
     activityTimer->reset();
     logonTimer->reset();
-    appModelSetup(showWorkShiftStatsOnly ? "ApplicationWorktimeUsage" : "ApplicationUsage");
+    appModelSetup(showWorkShiftStatsOnly_ ? "ApplicationWorktimeUsage" : "ApplicationUsage");
   }
-  if (isSystemLocked)
+
+  if (isSystemLocked_)
   {
-    loggedOffTime++;
+    loggedOffTime_++;
+    if (isHaveToRest_)
+      {
+        qDebug() << "resting...";
+        haveToRest_--;
+        if(haveToRest_ <= 0s)
+          {
+            qDebug() << "Rest finished";
+            isHaveToRest_ = false;
+            userWorkTime_ = 0s;
+            emit deleteTrayMessage();
+            setRestTimer();
+          }
+      }
     return;
   }
 
-  loggedOnTime++;
-  if (!trackingEnabled)
+  loggedOnTime_++;
+  if (!trackingEnabled_)
   {
     return;
   }
+
+  if(restControlEnabled_ && !isHaveToRest_ && userWorkTime_ > maxWorkTimeInRow_)
+    {
+      qDebug("You have to rest");
+      isHaveToRest_ = true;      
+      doSomeRestNotification();
+      if(LockWorkStation())
+        {
+          qDebug("Locked the workstation");
+          return;
+        }
+    }
+  else if (isHaveToRest_)
+    {
+      qDebug("Ignoring rest");
+    }
+
+  userWorkTime_++;
+
+  if(restControlEnabled_ && maxWorkTimeInRow_ - userWorkTime_  < 350s)
+    {
+      haveToRest_ = timerToRest_;
+      setRestTimer();
+      emit showTrayMessage("Less than 5min left");
+    }
+
 
   bool isWorkShift = false;
   QDateTime curTime = QDateTime::currentDateTime();
-  if (curTime.time() >= shiftStart && curTime.time() <= shiftEnd)
+  if (curTime.time() >= shiftStart_ && curTime.time() <= shiftEnd_)
   {
     isWorkShift = true;
   }
@@ -106,7 +146,7 @@ void TimeTracker::updateApplicationUsage(QString name, std::chrono::seconds time
   DWORD idleSeconds = (GetTickCount() - info.dwTime) / 1000;
   if (idleSeconds > USER_IDLING_DELAY)
   {
-    userIdlingTime++;
+    userIdlingTime_++;
     activityTimer->pause();
   }
   else
@@ -119,20 +159,31 @@ void TimeTracker::updateDailyStats()
 {
   appUsageModel->select();
   QSqlQuery insertQuery, updateQuery;
-  insertQuery.prepare("INSERT OR IGNORE INTO DailyUsage(logon, logoff, idle, day) VALUES(:logon, :logoff, :idle, date(:session))");
-  updateQuery.prepare("UPDATE DailyUsage SET logon = logon + :logon, idle = idle + :idle, logoff = logoff + :logoff WHERE day=date(:session)");
-
-  insertQuery.bindValue(":logon", loggedOnTime.count());
-  insertQuery.bindValue(":logoff", loggedOffTime.count());
-  insertQuery.bindValue(":idle", userIdlingTime.count());
-  insertQuery.bindValue(":session", currentSession.toString("yyyy-MM-dd"));
+  insertQuery.prepare("INSERT OR IGNORE INTO DailyUsage(logon, logoff, idle, day, haveToRest) VALUES(:logon, :logoff, :idle, date(:session), :haveToRest)");
+  updateQuery.prepare("UPDATE DailyUsage SET haveToRest = :haveToRest, logon = :logon, idle = :idle, logoff = :logoff WHERE day=date(:session)");
+  qDebug() << haveToRest_.count();
+  insertQuery.bindValue(":haveToRest", haveToRest_.count());
+  insertQuery.bindValue(":logon", loggedOnTime_.count());
+  insertQuery.bindValue(":logoff", loggedOffTime_.count());
+  insertQuery.bindValue(":idle", userIdlingTime_.count());
+  insertQuery.bindValue(":session", currentSession_.toString("yyyy-MM-dd"));
   insertQuery.exec();
 
-  updateQuery.bindValue(":logon", loggedOnTime.count());
-  updateQuery.bindValue(":logoff", loggedOffTime.count());
-  updateQuery.bindValue(":idle", userIdlingTime.count());
-  updateQuery.bindValue(":session", currentSession.toString("yyyy-MM-dd"));
+  updateQuery.bindValue(":haveToRest", haveToRest_.count());
+  updateQuery.bindValue(":logon", loggedOnTime_.count());
+  updateQuery.bindValue(":logoff", loggedOffTime_.count());
+  updateQuery.bindValue(":idle", userIdlingTime_.count());
+  updateQuery.bindValue(":session", currentSession_.toString("yyyy-MM-dd"));
   updateQuery.exec();
 
   appUsageModel->submitAll();
+}
+
+void TimeTracker::setRestTimer()
+{
+  updateDailyStats();
+}
+void TimeTracker::getRestTimer()
+{
+
 }

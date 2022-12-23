@@ -9,11 +9,11 @@
 int main(int argc, char *argv[])
 {
   Q_INIT_RESOURCE(app);
-  QApplication a(argc, argv);
+  QApplication app(argc, argv);
 
   if (!QSystemTrayIcon::isSystemTrayAvailable())
   {
-    QMessageBox::critical(nullptr, QObject::tr("Трей"), QObject::tr("Не могу свернуться в трей."));
+    QMessageBox::critical(nullptr, QObject::tr("System tray"), QObject::tr("Can't hind intp the system tray."));
     return 1;
   }
 
@@ -25,7 +25,8 @@ int main(int argc, char *argv[])
   QFile file("stylesheet.сss");
   file.open(QFile::ReadOnly);
   QString styleSheet = QLatin1String(file.readAll());
-  a.setStyleSheet(styleSheet);
+  app.setStyleSheet(styleSheet);
   TimeTracker w;
-  return a.exec();
+  app.setQuitOnLastWindowClosed(true);
+  return app.exec();
 }

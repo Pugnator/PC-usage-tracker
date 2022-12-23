@@ -6,7 +6,9 @@ QStringList SQL_SCHEME =
         "CREATE TABLE IF NOT EXISTS ApplicationUsage (ID INTEGER PRIMARY KEY AUTOINCREMENT, day DATETIME DEFAULT CURRENT_DATE, name TEXT, usage INTEGER, last DATETIME DEFAULT CURRENT_TIMESTAMP)",
         "CREATE TABLE IF NOT EXISTS ApplicationWorktimeUsage (ID INTEGER PRIMARY KEY AUTOINCREMENT, day DATETIME DEFAULT CURRENT_DATE, name TEXT, usage INTEGER, last DATETIME DEFAULT CURRENT_TIMESTAMP)",
         "CREATE TABLE IF NOT EXISTS ApplicationFilter (ID INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)",
-        "CREATE TABLE IF NOT EXISTS DailyUsage (ID INTEGER PRIMARY KEY AUTOINCREMENT, day DATETIME DEFAULT CURRENT_DATE UNIQUE, logon INTEGER, logoff INTEGER, idle INTEGER)"};
+        "CREATE TABLE IF NOT EXISTS DailyUsage (ID INTEGER PRIMARY KEY AUTOINCREMENT, day DATETIME DEFAULT CURRENT_DATE UNIQUE, logon INTEGER, logoff INTEGER, idle INTEGER, haveToRest INTEGER)",
+        "CREATE TABLE IF NOT EXISTS DailyRest (ID INTEGER PRIMARY KEY AUTOINCREMENT, day DATETIME DEFAULT CURRENT_DATE UNIQUE, restTime INTEGER)"
+};
 
 #define APP_VIEW_SHOW_LIMIT " LIMIT 15"
 
@@ -132,26 +134,4 @@ void TimeTracker::on_resetStatsButton_clicked()
   appUsageModel->submitAll();
 }
 
-void TimeTracker::loadSettings()
-{
-  shiftStart = ui->timeShiftStart->time();
-  shiftEnd = ui->timeShiftEnd->time();
-  if (shiftStart > shiftEnd)
-  {
-    shiftStart = shiftEnd;
-  }
-  QSqlQuery usageQuery;
-  usageQuery.prepare("SELECT logon, idle FROM DailyUsage WHERE day=DATE('now', 'localtime') LIMIT 1");
-  if (!usageQuery.exec())
-  {
-    return;
-  }
 
-  while (usageQuery.next())
-  {
-    std::chrono::seconds logon(usageQuery.value(0).toInt());
-    logonTimer->set(logon);
-    std::chrono::seconds activity(usageQuery.value(0).toInt() - usageQuery.value(1).toInt());
-    activityTimer->set(activity);
-  }
-}

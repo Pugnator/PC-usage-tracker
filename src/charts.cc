@@ -24,7 +24,7 @@ void TimeTracker::createDailyChart()
   QSqlQuery usageQuery;
   QString queryStr = QString(
                          "SELECT name, usage FROM %1 WHERE last >= DATE('now', 'localtime') AND last < DATE('now', 'localtime', '+1 day') ORDER BY usage DESC LIMIT 10")
-                         .arg(showWorkShiftStatsOnly ? "ApplicationWorktimeUsage" : "ApplicationUsage");
+                         .arg(showWorkShiftStatsOnly_ ? "ApplicationWorktimeUsage" : "ApplicationUsage");
   usageQuery.prepare(queryStr);
   if (!usageQuery.exec())
   {
@@ -86,7 +86,7 @@ void TimeTracker::createCalendChart(QDate date)
   QSqlQuery usageQuery;
   QString queryStr = QString(
                          "SELECT name, usage FROM %1 WHERE last >= DATE('%2') AND last < DATE('%2', '+1 day') ORDER BY usage DESC LIMIT 10")
-                         .arg(showWorkShiftStatsOnly ? "ApplicationWorktimeUsage" : "ApplicationUsage", date.toString("yyyy-MM-dd"));
+                         .arg(showWorkShiftStatsOnly_ ? "ApplicationWorktimeUsage" : "ApplicationUsage", date.toString("yyyy-MM-dd"));
   usageQuery.prepare(queryStr);
   if (!usageQuery.exec())
   {

@@ -50,14 +50,17 @@ public:
   ~TrayIcon();
 
 private slots:
-  void setVisible();
+  void showTrayMessage(QString);
+  void deleteTrayMessage();
+  void setVisible();  
   void handleActivation(QSystemTrayIcon::ActivationReason reason);
 
-signals:
+signals:  
   void toggleVisibility();
 
 private:
   QMenu *trayIconMenu;
+  bool messageShown;
 };
 
 class TimeTracker : public QMainWindow
@@ -72,7 +75,11 @@ protected:
   void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
   bool eventFilter(QObject *obj, QEvent *event) Q_DECL_OVERRIDE;
 
-private slots:
+signals:
+  void showTrayMessage(QString);
+  void deleteTrayMessage();
+
+private slots:  
   void updateApplicationUsage(QString, std::chrono::seconds);
   void updateApplicationAtWorkUsage(QString name, std::chrono::seconds time);
 
@@ -88,7 +95,11 @@ private slots:
   bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) Q_DECL_OVERRIDE;
 
 private:
+  void setRestTimer();
+  void getRestTimer();
+  void doSomeRestNotification();
   bool prepareDb();
+  void loadUserSettings();
   void appModelSetup(QString tableName);
   void createTrayIcon();
   void createActions();
@@ -104,7 +115,7 @@ private:
 
   Ui::TimeTracker *ui;
 
-  std::unique_ptr<QObject> timeTracker;
+  std::unique_ptr<QObject> timeTracker_;
   std::unique_ptr<Timer> trackerWorker;
   AppUsageView *appUsageModel;
   std::unique_ptr<QSqlDatabase> db;
@@ -116,15 +127,23 @@ private:
   DigitalTimer *activityTimer;
   int timerId;
 
-  std::atomic_bool dontWarnOnHide;
-  std::atomic_bool isSystemLocked;
-  std::atomic_bool trackingEnabled;
-  std::atomic_bool showWorkShiftStatsOnly;
-  std::chrono::seconds loggedOnTime;
-  std::chrono::seconds loggedOffTime;
-  std::chrono::seconds userIdlingTime;
+  std::atomic_bool dontWarnOnHide_;
+  std::chrono::seconds maxWorkTimeInRow_;
+  std::chrono::seconds timerToRest_;
+  std::chrono::seconds haveToRest_;
 
-  QTime shiftStart;
-  QTime shiftEnd;
-  QDate currentSession;
+  std::atomic_bool isHaveToRest_;
+  std::atomic_bool restControlEnabled_;
+  std::atomic_bool isSystemLocked_;
+  std::atomic_bool trackingEnabled_;
+  std::atomic_bool showWorkShiftStatsOnly_;
+  std::chrono::seconds loggedOnTime_;
+  std::chrono::seconds loggedOffTime_;
+  std::chrono::seconds userIdlingTime_;
+
+  std::chrono::seconds userWorkTime_;
+
+  QTime shiftStart_;
+  QTime shiftEnd_;
+  QDate currentSession_;
 };

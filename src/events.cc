@@ -5,13 +5,13 @@
 #include <QMessageBox>
 
 void TimeTracker::closeEvent(QCloseEvent *event)
-{
+{  
   if (!event->spontaneous() || !isVisible())
     return;
 
   if (trayIcon->isVisible())
   {
-    if (!dontWarnOnHide)
+    if (!dontWarnOnHide_)
     {
       QMessageBox msgBox;
       msgBox.setWindowIcon(QIcon("icon.ico"));
@@ -23,7 +23,7 @@ void TimeTracker::closeEvent(QCloseEvent *event)
       QObject::connect(cb, &QCheckBox::stateChanged, [this](int state)
                        {
               if (static_cast<Qt::CheckState>(state) == Qt::CheckState::Checked) {
-                  this->dontWarnOnHide = true;
+                  this->dontWarnOnHide_ = true;
                 } });
       msgBox.exec();
     }
@@ -42,13 +42,22 @@ bool TimeTracker::nativeEvent(const QByteArray &eventType, void *message, qintpt
   case WM_WTSSESSION_CHANGE:
     if (WTS_SESSION_LOCK == msg->wParam)
     {
-      isSystemLocked = true;
+      isSystemLocked_ = true;
       logonTimer->pause();
       activityTimer->pause();
     }
     if (WTS_SESSION_UNLOCK == msg->wParam)
     {
-      isSystemLocked = false;
+        if(isHaveToRest_)
+          {
+            qDebug("You have to rest!");
+            if(LockWorkStation())
+              {
+                qDebug("Locked the workstation");
+                return false;
+              }
+          }
+      isSystemLocked_ = false;
       logonTimer->start();
       activityTimer->start();
     }
@@ -69,15 +78,15 @@ void TimeTracker::timerEvent(QTimerEvent *event)
 
 void TimeTracker::on_showWorkTimeRangeOnly_clicked(bool clicked)
 {
-  showWorkShiftStatsOnly = clicked;
+  showWorkShiftStatsOnly_ = clicked;
   createDailyChart();
-  appModelSetup(showWorkShiftStatsOnly ? "ApplicationWorktimeUsage" : "ApplicationUsage");
+  appModelSetup(showWorkShiftStatsOnly_ ? "ApplicationWorktimeUsage" : "ApplicationUsage");
 }
 
 void TimeTracker::on_stopTrackingButton_clicked(bool clicked)
 {
-  trackingEnabled = !trackingEnabled;
-  if (trackingEnabled)
+  trackingEnabled_ = !trackingEnabled_;
+  if (trackingEnabled_)
   {
     ui->stopTrackingButton->setText(tr("Stop tracking"));
   }

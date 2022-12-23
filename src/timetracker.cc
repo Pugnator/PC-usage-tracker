@@ -5,27 +5,21 @@
 #include "clock/digitalclock.hpp"
 
 TimeTracker::TimeTracker(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::TimeTracker), isSystemLocked(false),
-      loggedOnTime(0s),
-      loggedOffTime(0s),
-      userIdlingTime(0s),
-      showWorkShiftStatsOnly(false),
-      trackingEnabled(true),
-      dontWarnOnHide(false),
-      currentSession(QDate::currentDate())
+    : QMainWindow(parent), ui(new Ui::TimeTracker), isSystemLocked_(false),
+      loggedOnTime_(0s),
+      isHaveToRest_(false),
+      restControlEnabled_(false),
+      loggedOffTime_(0s),
+      userIdlingTime_(0s),
+      userWorkTime_(0s),
+      showWorkShiftStatsOnly_(false),
+      trackingEnabled_(true),
+      dontWarnOnHide_(false),
+      currentSession_(QDate::currentDate())
 {
   ui->setupUi(this);
-  QSettings settings("settings.ini", QSettings::IniFormat);
-  if (QSettings::NoError != settings.status())
-  {
-    return;
-  }
-  settings.beginGroup("MainWindow");
-  if (settings.contains("dontWarnOnHide"))
-  {
-    dontWarnOnHide = settings.value("dontWarnOnHide").toBool();
-  }
-  settings.endGroup();
+
+  loadUserSettings();
 
   if (!WTSRegisterSessionNotification(reinterpret_cast<HWND>(winId()), NOTIFY_FOR_THIS_SESSION))
   {
@@ -42,8 +36,8 @@ TimeTracker::TimeTracker(QWidget *parent)
   createTrayIcon();
   ui->appTableView->show();
 
-  timeTracker.reset(new QObject(this));
-  trackerWorker.reset(new Timer(timeTracker.get(), this, reinterpret_cast<HWND>(winId())));
+  timeTracker_.reset(new QObject(this));
+  trackerWorker.reset(new Timer(timeTracker_.get(), this, reinterpret_cast<HWND>(winId())));
   connect(trackerWorker.get(), SIGNAL(appUpdate(QString, std::chrono::seconds)), this, SLOT(updateApplicationUsage(QString, std::chrono::seconds)));
 
   setWindowIcon(QIcon("icon.ico"));
@@ -59,19 +53,20 @@ TimeTracker::TimeTracker(QWidget *parent)
   createAppChart(QDate::currentDate());
   timerId = startTimer(15000, Qt::VeryCoarseTimer);
   loadSettings();
-
-  show();
+  updateDailyStats();
+  show();  
 }
 
 TimeTracker::~TimeTracker()
 {
+  qDebug("Exiting");
   QSettings settings("settings.ini", QSettings::IniFormat);
   if (QSettings::NoError != settings.status())
   {
     return;
   }
   settings.beginGroup("MainWindow");
-  settings.setValue("dontWarnOnHide", QVariant(dontWarnOnHide));
+  settings.setValue("dontWarnOnHide", QVariant(dontWarnOnHide_));
   settings.endGroup();
 
   updateDailyStats();
