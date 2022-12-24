@@ -5,40 +5,44 @@
 #include "clock/digitalclock.hpp"
 
 TimeTracker::TimeTracker(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::TimeTracker), isSystemLocked_(false),
-      loggedOnTime_(0s),
-      isHaveToRest_(false),
-      restControlEnabled_(false),
-      loggedOffTime_(0s),
-      userIdlingTime_(0s),
-      userWorkTime_(0s),
-      showWorkShiftStatsOnly_(false),
-      trackingEnabled_(true),
-      dontWarnOnHide_(false),
-      currentSession_(QDate::currentDate())
+  : QMainWindow(parent),
+    ui(new Ui::TimeTracker),
+    isSystemLocked_(false),
+    daylyLoggedOnTime_(0s),
+    isHaveToRest_(false),
+    restControlEnabled_(false),
+    daylyLoggedOffTime_(0s),
+    daylyIdlingTime_(0s),
+    timeLeftToLock_(0s),
+    startHiddenInTray_(false),
+    timeEndWarningShown_(false),
+    showWorkShiftStatsOnly_(false),
+    trackingEnabled_(true),
+    dontWarnOnHide_(false),
+    currentSession_(QDate::currentDate())
 {
   ui->setupUi(this);
 
   loadUserSettings();
 
   if (!WTSRegisterSessionNotification(reinterpret_cast<HWND>(winId()), NOTIFY_FOR_THIS_SESSION))
-  {
-    qDebug("Failed to register for notifications");
-  }
+    {
+      qDebug("Failed to register for notifications");
+    }
 
   if (!prepareDb())
-  {
-    qDebug("failed to prepare DB");
-    QCoreApplication::exit(1);
-    return;
-  }
+    {
+      qDebug("failed to prepare DB");
+      QCoreApplication::exit(1);
+      return;
+    }
 
   createTrayIcon();
   ui->appTableView->show();
 
   timeTracker_.reset(new QObject(this));
   trackerWorker.reset(new Timer(timeTracker_.get(), this, reinterpret_cast<HWND>(winId())));
-  connect(trackerWorker.get(), SIGNAL(appUpdate(QString, std::chrono::seconds)), this, SLOT(updateApplicationUsage(QString, std::chrono::seconds)));
+  connect(trackerWorker.get(), SIGNAL(appUpdate(QString, std::chrono::seconds)), this, SLOT(onTimerTick(QString, std::chrono::seconds)));
 
   setWindowIcon(QIcon("icon.ico"));
 
@@ -54,7 +58,10 @@ TimeTracker::TimeTracker(QWidget *parent)
   timerId = startTimer(15000, Qt::VeryCoarseTimer);
   loadSettings();
   updateDailyStats();
-  show();  
+  if(!startHiddenInTray_)
+    {
+      show();
+    }
 }
 
 TimeTracker::~TimeTracker()
@@ -62,9 +69,9 @@ TimeTracker::~TimeTracker()
   qDebug("Exiting");
   QSettings settings("settings.ini", QSettings::IniFormat);
   if (QSettings::NoError != settings.status())
-  {
-    return;
-  }
+    {
+      return;
+    }
   settings.beginGroup("MainWindow");
   settings.setValue("dontWarnOnHide", QVariant(dontWarnOnHide_));
   settings.endGroup();

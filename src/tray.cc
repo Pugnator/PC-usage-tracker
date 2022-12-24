@@ -9,8 +9,7 @@ void TimeTracker::createTrayIcon()
 {
   trayIcon = new TrayIcon(this);
   connect(trayIcon, SIGNAL(toggleVisibility()), this, SLOT(resizeEvent()));
-  connect(this, SIGNAL(showTrayMessage(QString)), trayIcon, SLOT(showTrayMessage(QString)));
-  connect(this, SIGNAL(deleteTrayMessage()), trayIcon, SLOT(deleteTrayMessage()));
+  connect(this, SIGNAL(showTrayMessage(QString)), trayIcon, SLOT(showTrayMessage(QString)));  
 }
 
 TrayIcon::TrayIcon(QObject *parent) :
@@ -39,20 +38,9 @@ void TrayIcon::setVisible()
   emit toggleVisibility();
 }
 
-void TrayIcon::deleteTrayMessage()
-{
-   messageShown=false;
-}
-
 void TrayIcon::showTrayMessage(QString message)
-{
-  if(messageShown)
-    {
-      return;
-    }
-
-  messageShown = true;
-  showMessage("Warning", message, QSystemTrayIcon::Warning,30000);
+{  
+  showMessage("Warning", message, QSystemTrayIcon::Warning);
 }
 
 void TrayIcon::handleActivation(QSystemTrayIcon::ActivationReason reason)

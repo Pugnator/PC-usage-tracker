@@ -18,6 +18,9 @@ QT_END_NAMESPACE
 
 using namespace std::chrono_literals;
 
+extern QScopedPointer<QFile> logFile;
+void messageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+
 inline constexpr const char *const DATABASE_FILENAME = "usage.db3";
 inline constexpr const char *const DATABASE_BACKUP_FILENAME = "usage.db3.bak";
 inline constexpr const char *const SQL_OPTIONS =
@@ -51,8 +54,7 @@ public:
 
 private slots:
   void showTrayMessage(QString);
-  void deleteTrayMessage();
-  void setVisible();  
+  void setVisible();
   void handleActivation(QSystemTrayIcon::ActivationReason reason);
 
 signals:  
@@ -77,17 +79,16 @@ protected:
 
 signals:
   void showTrayMessage(QString);
-  void deleteTrayMessage();
 
 private slots:  
-  void updateApplicationUsage(QString, std::chrono::seconds);
+  void onTimerTick(QString, std::chrono::seconds);
   void updateApplicationAtWorkUsage(QString name, std::chrono::seconds time);
 
   void resizeEvent();
 
   void onPieChartSliceHovered(bool);
   void on_showWorkTimeRangeOnly_clicked(bool);
-  void on_stopTrackingButton_clicked(bool);  
+  void on_stopTrackingButton_clicked(bool);
   void on_calendarStats_selectionChanged();
 
   void on_resetStatsButton_clicked();
@@ -95,9 +96,10 @@ private slots:
   bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) Q_DECL_OVERRIDE;
 
 private:
+  void updateAppStats(QString name, std::chrono::seconds time);
+  void onNewDayAction();
+  bool lockSystem();
   void setRestTimer();
-  void getRestTimer();
-  void doSomeRestNotification();
   bool prepareDb();
   void loadUserSettings();
   void appModelSetup(QString tableName);
@@ -130,18 +132,20 @@ private:
   std::atomic_bool dontWarnOnHide_;
   std::chrono::seconds maxWorkTimeInRow_;
   std::chrono::seconds timerToRest_;
-  std::chrono::seconds haveToRest_;
+  std::chrono::seconds timeUserHaveToRest_;
 
+  std::atomic_bool startHiddenInTray_;
   std::atomic_bool isHaveToRest_;
   std::atomic_bool restControlEnabled_;
   std::atomic_bool isSystemLocked_;
   std::atomic_bool trackingEnabled_;
   std::atomic_bool showWorkShiftStatsOnly_;
-  std::chrono::seconds loggedOnTime_;
-  std::chrono::seconds loggedOffTime_;
-  std::chrono::seconds userIdlingTime_;
+  std::atomic_bool timeEndWarningShown_;
+  std::chrono::seconds daylyLoggedOnTime_;
+  std::chrono::seconds daylyLoggedOffTime_;
+  std::chrono::seconds daylyIdlingTime_;
 
-  std::chrono::seconds userWorkTime_;
+  std::chrono::seconds timeLeftToLock_;
 
   QTime shiftStart_;
   QTime shiftEnd_;

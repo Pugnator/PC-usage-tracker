@@ -12,7 +12,7 @@ void TimeTracker::loadSettings()
     shiftStart_ = shiftEnd_;
   }
   QSqlQuery usageQuery;
-  usageQuery.prepare("SELECT logon, idle, logoff, haveToRest FROM DailyUsage WHERE day=DATE('now', 'localtime') LIMIT 1");
+  usageQuery.prepare("SELECT logon, idle, logoff, haveToRest, timeLeftToLock FROM DailyUsage WHERE day=DATE('now', 'localtime') LIMIT 1");
   if (!usageQuery.exec())
   {
     return;
@@ -24,20 +24,17 @@ void TimeTracker::loadSettings()
     std::chrono::seconds idle(usageQuery.value(1).toInt());
     std::chrono::seconds logoff(usageQuery.value(2).toInt());
     std::chrono::seconds rest(usageQuery.value(3).toInt());
-    loggedOnTime_ = logon;
-    loggedOffTime_ = logoff;
-    userIdlingTime_ = idle;
-    haveToRest_ = rest;
-    if(haveToRest_ > 0s)
+    std::chrono::seconds timeLeft(usageQuery.value(4).toInt());
+    daylyLoggedOnTime_ = logon;
+    daylyLoggedOffTime_ = logoff;
+    daylyIdlingTime_ = idle;
+    timeUserHaveToRest_ = rest;
+    timeLeftToLock_ = timeLeft;
+    if(restControlEnabled_ && timeLeftToLock_ <= 0s && timeUserHaveToRest_ > 0s)
       {
-        isHaveToRest_ = true;
-        qDebug("have to rest!");
-        if(LockWorkStation())
-          {
-            qDebug("Locked the workstation");
-          }
+        lockSystem();
       }
-    qDebug("Loaded: logon %lld idle %lld logoff %lld haveToRest_ %lld", logon.count(), idle.count(), logoff.count(), rest.count());
+    qDebug("Loaded: logon %lld idle %lld logoff %lld haveToRest %lld timeLeftToLock_ %lld", logon.count(), idle.count(), logoff.count(), rest.count(), timeLeftToLock_.count());
     logonTimer->set(logon);
     std::chrono::seconds activity(usageQuery.value(0).toInt() - usageQuery.value(1).toInt());
     activityTimer->set(activity);
@@ -57,6 +54,11 @@ void TimeTracker::loadUserSettings()
   {
     dontWarnOnHide_ = settings.value("dontWarnOnHide").toBool();
   }
+  if (settings.contains("startMinimized"))
+  {
+    startHiddenInTray_ = settings.value("startMinimized").toBool();
+  }
+
   settings.endGroup();
   settings.beginGroup("RestControl");
   if (settings.contains("maxLogOnTime"))
@@ -69,7 +71,9 @@ void TimeTracker::loadUserSettings()
   }
   if(maxWorkTimeInRow_ > 0s && timerToRest_ > 0s)
     {
+      qDebug("Rest control enabled");
       restControlEnabled_ = true;
+      timeLeftToLock_ = maxWorkTimeInRow_;
     }
   settings.endGroup();  
 }
