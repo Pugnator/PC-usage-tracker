@@ -18,7 +18,7 @@ void TimeTracker::closeEvent(QCloseEvent *event)
           msgBox.setText(tr("The application will continue to work in backgroud.<br>To close the app click \"Quit\" in the system tray's icon menu."));
           msgBox.setIcon(QMessageBox::Icon::Warning);
           msgBox.addButton(QMessageBox::Ok);
-          QCheckBox *cb = new QCheckBox("Don't show again");
+          QCheckBox *cb = new QCheckBox("Don't show again.");
           msgBox.setCheckBox(cb);
           QObject::connect(cb, &QCheckBox::stateChanged, [this](int state)
           {
@@ -42,14 +42,17 @@ bool TimeTracker::nativeEvent(const QByteArray &eventType, void *message, qintpt
     case WM_WTSSESSION_CHANGE:
       if (WTS_SESSION_LOCK == msg->wParam)
         {
+          qInfo("Windows: System is locked.");
           isSystemLocked_ = true;
           logonTimer->pause();
           activityTimer->pause();
         }
       if (WTS_SESSION_UNLOCK == msg->wParam)
         {
+          qInfo("Windows: User unlocked the session.");
           if(isHaveToRest_ && lockSystem())
             {
+              qInfo("Locking the system, user has to rest %lld more.", timeUserHasToRest_.count());
               return false;
             }
           isSystemLocked_ = false;

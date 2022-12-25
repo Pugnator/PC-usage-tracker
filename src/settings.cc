@@ -28,13 +28,13 @@ void TimeTracker::loadSettings()
     daylyLoggedOnTime_ = logon;
     daylyLoggedOffTime_ = logoff;
     daylyIdlingTime_ = idle;
-    timeUserHaveToRest_ = rest;
+    timeUserHasToRest_ = rest;
     timeLeftToLock_ = timeLeft;
-    if(restControlEnabled_ && timeLeftToLock_ <= 0s && timeUserHaveToRest_ > 0s)
+    if(restControlEnabled_ && timeLeftToLock_ <= 0s && timeUserHasToRest_ > 0s)
       {
         lockSystem();
       }
-    qDebug("Loaded: logon %lld idle %lld logoff %lld haveToRest %lld timeLeftToLock_ %lld", logon.count(), idle.count(), logoff.count(), rest.count(), timeLeftToLock_.count());
+    qInfo("Dayly stats loaded:\nTotal logon %lld\nTotal idle %lld\nTotal logoff %lld\nTime to rest left %lld\nTime before lock left %lld", logon.count(), idle.count(), logoff.count(), rest.count(), timeLeftToLock_.count());
     logonTimer->set(logon);
     std::chrono::seconds activity(usageQuery.value(0).toInt() - usageQuery.value(1).toInt());
     activityTimer->set(activity);
@@ -44,15 +44,17 @@ void TimeTracker::loadSettings()
 
 void TimeTracker::loadUserSettings()
 {
+  qInfo("Loading user defined settings");
   QSettings settings("settings.ini", QSettings::IniFormat);
   if (QSettings::NoError != settings.status())
   {
+    qCritical("Error loading user settings.");
     return;
   }
-  settings.beginGroup("MainWindow");
+  settings.beginGroup("Global");
   if (settings.contains("dontWarnOnHide"))
   {
-    dontWarnOnHide_ = settings.value("dontWarnOnHide").toBool();
+    dontWarnOnHide_ = settings.value("dontWarnOnHide").toBool();    
   }
   if (settings.contains("startMinimized"))
   {
@@ -61,17 +63,24 @@ void TimeTracker::loadUserSettings()
 
   settings.endGroup();
   settings.beginGroup("RestControl");
-  if (settings.contains("maxLogOnTime"))
+  if (settings.contains("maxWorkInARowTime"))
   {
-    maxWorkTimeInRow_ = std::chrono::seconds(settings.value("maxLogOnTime").toUInt());
+    maxWorkTimeInRow_ = std::chrono::seconds(settings.value("maxWorkInARowTime").toUInt());
+    qInfo("maxWorkTimeInRow=%lld", maxWorkTimeInRow_.count());
+  }
+  if (settings.contains("maxWorkPerDayTime"))
+  {
+    maxWorkPerDayTime_ = std::chrono::seconds(settings.value("maxWorkPerDayTime").toUInt());
+    qInfo("maxWorkPerDayTime=%lld", maxWorkPerDayTime_.count());
   }
   if (settings.contains("restTime"))
   {
     timerToRest_ = std::chrono::seconds(settings.value("restTime").toUInt());
+    qInfo("timerToRest=%lld", timerToRest_.count());
   }
   if(maxWorkTimeInRow_ > 0s && timerToRest_ > 0s)
     {
-      qDebug("Rest control enabled");
+      qInfo("Rest control enabled");
       restControlEnabled_ = true;
       timeLeftToLock_ = maxWorkTimeInRow_;
     }

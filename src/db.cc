@@ -33,7 +33,7 @@ bool TimeTracker::prepareDb()
   db->setDatabaseName(DATABASE_FILENAME);
   if (!db->open())
   {
-    qDebug("Failed to open database");
+    qInfo("Failed to open database");
     return false;
   }
   QSqlQuery query(*db.get());

@@ -14,6 +14,7 @@ TimeTracker::TimeTracker(QWidget *parent)
     daylyLoggedOffTime_(0s),
     daylyIdlingTime_(0s),
     timeLeftToLock_(0s),
+    maxWorkPerDayTime_(0s),
     startHiddenInTray_(false),
     timeEndWarningShown_(false),
     showWorkShiftStatsOnly_(false),
@@ -22,17 +23,18 @@ TimeTracker::TimeTracker(QWidget *parent)
     currentSession_(QDate::currentDate())
 {
   ui->setupUi(this);
+  qInfo("Application started.");
 
   loadUserSettings();
 
   if (!WTSRegisterSessionNotification(reinterpret_cast<HWND>(winId()), NOTIFY_FOR_THIS_SESSION))
     {
-      qDebug("Failed to register for notifications");
+      qCritical("Failed to register for notifications.");
     }
 
   if (!prepareDb())
     {
-      qDebug("failed to prepare DB");
+      qCritical("failed to prepare DB.");
       QCoreApplication::exit(1);
       return;
     }
@@ -66,13 +68,14 @@ TimeTracker::TimeTracker(QWidget *parent)
 
 TimeTracker::~TimeTracker()
 {
-  qDebug("Exiting");
+  qInfo("Exiting.");
   QSettings settings("settings.ini", QSettings::IniFormat);
   if (QSettings::NoError != settings.status())
     {
+      qCritical("Error saving user settings.");
       return;
     }
-  settings.beginGroup("MainWindow");
+  settings.beginGroup("Global");
   settings.setValue("dontWarnOnHide", QVariant(dontWarnOnHide_));
   settings.endGroup();
 

@@ -42,7 +42,7 @@ void TimeTracker::updateAppStats(QString name, std::chrono::seconds time)
       insertQuery.bindValue(":appName", name);
       if (!insertQuery.exec())
         {
-          qDebug("Failure");
+          qInfo("Failure");
         }
     }
   else
@@ -68,7 +68,7 @@ void TimeTracker::updateAppStats(QString name, std::chrono::seconds time)
 
 void TimeTracker::onNewDayAction()
 {
-  qDebug("New day!");
+  qInfo("New day, resettings stats.");
   // it's a new day
   //! FIXME: this is a shitty temp solution
   //! BUG: https://github.com/Pugnator/ApplicationTimeTracker/issues/1
@@ -86,11 +86,11 @@ void TimeTracker::onNewDayAction()
 
 bool TimeTracker::lockSystem()
 {
-  qDebug("You have to rest");
+  qInfo("User has to rest.");
   isHaveToRest_ = true;
   if(LockWorkStation())
   {
-    qDebug("Locked the workstation");
+    qInfo("Locked the workstation.");
     return true;
   }
   return false;
@@ -108,10 +108,10 @@ void TimeTracker::onTimerTick(QString name, std::chrono::seconds time)
       daylyLoggedOffTime_++;
       if (isHaveToRest_)
         {
-          timeUserHaveToRest_--;
-          if(timeUserHaveToRest_ <= 0s)
+          timeUserHasToRest_--;
+          if(timeUserHasToRest_ <= 0s)
             {
-              qDebug() << "Rest finished";
+              qInfo() << "Rest finished, user can log on.";
               isHaveToRest_ = false;
               timeLeftToLock_ = maxWorkTimeInRow_;
               timeEndWarningShown_ = false;
@@ -129,6 +129,12 @@ void TimeTracker::onTimerTick(QString name, std::chrono::seconds time)
       return;
     }
 
+  if(maxWorkPerDayTime_ > 0s && daylyLoggedOnTime_ >= maxWorkPerDayTime_)
+    {
+      qInfo("Dayly limit reached [%lld], logging off.", maxWorkPerDayTime_.count());
+      lockSystem();
+    }
+
   daylyLoggedOnTime_++;
   if (!trackingEnabled_)
     {
@@ -141,7 +147,7 @@ void TimeTracker::onTimerTick(QString name, std::chrono::seconds time)
     }
   else if (isHaveToRest_)
     {
-      qDebug("Ignoring rest");
+      qWarning("Logic error, user is logged on when it should rest.");
     }
 
   if(restControlEnabled_ && timeLeftToLock_ > 0s)
@@ -152,11 +158,12 @@ void TimeTracker::onTimerTick(QString name, std::chrono::seconds time)
 
   if(restControlEnabled_ && timeLeftToLock_  < 350s)
     {
-      timeUserHaveToRest_ = timerToRest_;
+      timeUserHasToRest_ = timerToRest_;
       setRestTimer();
       if(!timeEndWarningShown_)
         {
-          emit showTrayMessage("Less than 5min left");
+          qWarning("Less than %lldsecs left.", timeLeftToLock_.count());
+          emit showTrayMessage("Less than 5min left.");
         }
 
       timeEndWarningShown_ = true;
@@ -193,7 +200,7 @@ void TimeTracker::updateDailyStats()
   updateQuery.prepare("UPDATE DailyUsage SET timeLeftToLock = :timeLeftToLock, haveToRest = :haveToRest, logon = :logon, idle = :idle, logoff = :logoff WHERE day=date(:session)");
 
   insertQuery.bindValue(":timeLeftToLock", timeLeftToLock_.count());
-  insertQuery.bindValue(":haveToRest", timeUserHaveToRest_.count());
+  insertQuery.bindValue(":haveToRest", timeUserHasToRest_.count());
   insertQuery.bindValue(":logon", daylyLoggedOnTime_.count());
   insertQuery.bindValue(":logoff", daylyLoggedOffTime_.count());
   insertQuery.bindValue(":idle", daylyIdlingTime_.count());
@@ -201,7 +208,7 @@ void TimeTracker::updateDailyStats()
   insertQuery.exec();
 
   updateQuery.bindValue(":timeLeftToLock", timeLeftToLock_.count());
-  updateQuery.bindValue(":haveToRest", timeUserHaveToRest_.count());
+  updateQuery.bindValue(":haveToRest", timeUserHasToRest_.count());
   updateQuery.bindValue(":logon", daylyLoggedOnTime_.count());
   updateQuery.bindValue(":logoff", daylyLoggedOffTime_.count());
   updateQuery.bindValue(":idle", daylyIdlingTime_.count());

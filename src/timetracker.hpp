@@ -132,7 +132,7 @@ private:
   std::atomic_bool dontWarnOnHide_;
   std::chrono::seconds maxWorkTimeInRow_;
   std::chrono::seconds timerToRest_;
-  std::chrono::seconds timeUserHaveToRest_;
+  std::chrono::seconds timeUserHasToRest_;
 
   std::atomic_bool startHiddenInTray_;
   std::atomic_bool isHaveToRest_;
@@ -141,6 +141,7 @@ private:
   std::atomic_bool trackingEnabled_;
   std::atomic_bool showWorkShiftStatsOnly_;
   std::atomic_bool timeEndWarningShown_;
+  std::chrono::seconds maxWorkPerDayTime_;
   std::chrono::seconds daylyLoggedOnTime_;
   std::chrono::seconds daylyLoggedOffTime_;
   std::chrono::seconds daylyIdlingTime_;
