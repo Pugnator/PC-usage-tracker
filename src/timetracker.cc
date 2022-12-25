@@ -27,7 +27,7 @@ TimeTracker::TimeTracker(QWidget *parent)
 
   loadUserSettings();
 
-  if (!WTSRegisterSessionNotification(reinterpret_cast<HWND>(winId()), NOTIFY_FOR_THIS_SESSION))
+  if (!WTSRegisterSessionNotification(reinterpret_cast<HWND>(winId()), NOTIFY_FOR_ALL_SESSIONS))
     {
       qCritical("Failed to register for notifications.");
     }

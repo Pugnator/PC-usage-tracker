@@ -1,6 +1,7 @@
 #include "timetracker.hpp"
 #include "./ui_timetracker.h"
 #include <winuser.h>
+#include <wtsapi32.h>
 #include <sysinfoapi.h>
 
 #define USER_IDLING_DELAY 60
@@ -86,14 +87,37 @@ void TimeTracker::onNewDayAction()
 
 bool TimeTracker::lockSystem()
 {
-  qInfo("User has to rest.");
   isHaveToRest_ = true;
-  if(LockWorkStation())
-  {
-    qInfo("Locked the workstation.");
-    return true;
-  }
-  return false;
+  PWTS_SESSION_INFO pSessionInfo = NULL;
+  HANDLE hServer = WTS_CURRENT_SERVER_HANDLE;
+  DWORD count = 0;
+
+  BOOL result = WTSEnumerateSessions(hServer, 0, 1, &pSessionInfo, &count);
+
+  if (!result)
+    {
+      qCritical("WTSEnumerateSessions failed.");
+      return false;
+    }
+
+  BOOL isAnyDiscFailed = false;
+
+  qInfo("User sessions count: %lu.", count);
+  for (auto index = 0; index < count; index++)
+    {
+      qInfo("[%u] SessionId: %lu State: %u.", index,
+              pSessionInfo[index].SessionId,
+              pSessionInfo[index].State);
+      qInfo("User has to rest.");
+      BOOL discRes = WTSDisconnectSession(hServer, pSessionInfo[index].SessionId, FALSE);
+      if(!discRes)
+        {
+          isAnyDiscFailed = true;
+          qCritical("Failed to disconnect user %lu.", pSessionInfo[index].SessionId);
+        }
+    }
+
+  return !isAnyDiscFailed;
 }
 
 void TimeTracker::onTimerTick(QString name, std::chrono::seconds time)
@@ -162,6 +186,7 @@ void TimeTracker::onTimerTick(QString name, std::chrono::seconds time)
       setRestTimer();
       if(!timeEndWarningShown_)
         {
+          showNativeMessage(WTS_CURRENT_SESSION, "Less than 5mins left.");
           qWarning("Less than %lldsecs left.", timeLeftToLock_.count());
           emit showTrayMessage("Less than 5min left.");
         }

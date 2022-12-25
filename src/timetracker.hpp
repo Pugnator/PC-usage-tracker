@@ -96,6 +96,7 @@ private slots:
   bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) Q_DECL_OVERRIDE;
 
 private:
+  void showNativeMessage(DWORD userSession, QString message);
   void updateAppStats(QString name, std::chrono::seconds time);
   void onNewDayAction();
   bool lockSystem();
